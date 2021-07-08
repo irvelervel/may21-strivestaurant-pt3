@@ -23,7 +23,15 @@
 // EVERY TIME YOU GET NEW PROPS YOU GET RENDER() FIRED AGAIN
 
 import { Component } from "react";
-import { Col, Container, Row } from 'react-bootstrap'
+import { Container, ListGroup, Row } from 'react-bootstrap'
+import Col from 'react-bootstrap/Col'
+
+import Loading from "./Loading";
+import Error from "./Error";
+// import { parseISO, format } from 'date-fns'
+
+import parseISO from 'date-fns/parseISO'
+import format from 'date-fns/format'
 
 class Reservations extends Component {
 
@@ -39,7 +47,9 @@ class Reservations extends Component {
     // }
 
     state = {
-        reservations: []
+        reservations: [],
+        isLoading: true,
+        isError: false
     }
 
     // the perfect place for doing a fetch in a React Component
@@ -56,21 +66,36 @@ class Reservations extends Component {
         // it can take seconds!!
 
         try {
+
+            // this.setState({
+            //     isLoading: true
+            // })
+
             let response = await fetch('https://striveschool-api.herokuapp.com/api/reservation')
+
             if (response.ok) {
                 // we got the reservations array!
                 // console.log(response)
                 let data = await response.json()
                 // data should be the array of reservations by now!
                 this.setState({
-                    reservations: data
+                    reservations: data,
+                    isLoading: false,
+                    isError: false
                 })
             } else {
                 // we encountered an error!
-                alert('we got an error!')
+                this.setState({
+                    isLoading: false,
+                    isError: true
+                })
             }
         } catch (error) {
-            console.log(error)
+            console.log('BIG ERRORRRR!!', error)
+            this.setState({
+                isError: true,
+                isLoading: false
+            })
         }
     }
 
@@ -88,6 +113,11 @@ class Reservations extends Component {
     // after they are presented with something to see, we can do our expensive operations
     // under the hood, in the componentDidMount
 
+    // from 2021-11-27T20:00:00.000Z
+    // into Saturday, November the 27th
+
+    // Date()
+
     render() {
         console.log('THIS IS RENDER')
 
@@ -95,11 +125,25 @@ class Reservations extends Component {
             <Container>
                 <Row className="justify-content-center my-5">
                     <Col xs={12} md={6} className="text-center">
-                        <h1 onClick={this.myFunction}>RESERVATIONS GO HERE!</h1>
+                        <h1
+                        // onClick={this.myFunction}
+                        >RESERVATIONS GO HERE!</h1>
                         <h3>HERE ARE THE CURRENT RESERVATIONS!</h3>
-                        {this.state.reservations.map(r => (
-                            <div key={r._id}>{r.name}</div>
-                        ))}
+
+                        {this.state.isError === true && <Error />}
+                        {this.state.isLoading === true
+                            ? <Loading />
+                            : <ListGroup>
+                                {this.state.reservations.map(r => (
+                                    <ListGroup.Item key={r._id}>
+                                        From: {r.name} - For: {r.numberOfPeople} - At: {format(parseISO(r.dateTime), 'dd MMMM yyyy - HH:mm')}
+                                        {/* we want to format dateTime, which is currently a string,
+                                    into something more readable */}
+                                    </ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                        }
+
                     </Col>
                 </Row>
             </Container>

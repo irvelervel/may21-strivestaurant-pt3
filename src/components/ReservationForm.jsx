@@ -71,6 +71,7 @@ class ReservationForm extends Component {
                 // we fall here if an error occurred from the server
                 // 400
                 // 401
+                // 404
                 // 500
                 alert('SOMETHING WENT WRONG ON THE SERVER')
             }
